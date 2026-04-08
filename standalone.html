@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IRI Browser Analyzer (Standalone)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        font-family: "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: #f4f6fb;
+        background-color: #0a0c10;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #0a0c10;
+      }
+      code {
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: #9ad0ff;
+      }
+      .app {
+        min-height: 100vh;
+        padding: 32px 32px 48px;
+        background: radial-gradient(circle at 20% 20%, #1a2230, #0a0c10 55%);
+      }
+      .hero {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: center;
+        padding: 24px 28px;
+        border-radius: 18px;
+        background: linear-gradient(120deg, rgba(35, 46, 66, 0.9), rgba(18, 22, 31, 0.9));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.28em;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 8px;
+      }
+      .hero h1 {
+        font-size: 36px;
+        margin: 0 0 10px;
+      }
+      .subtitle {
+        margin: 0;
+        max-width: 540px;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.6;
+      }
+      .hero-badge {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(12, 15, 20, 0.6);
+      }
+      .content {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        gap: 28px;
+        margin-top: 28px;
+      }
+      .panel {
+        background: rgba(15, 18, 25, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+      }
+      .panel-block {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .panel-block.two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 16px;
+        align-items: center;
+      }
+      .label {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      input,
+      select,
+      button {
+        font-family: inherit;
+      }
+      input,
+      select {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(12, 15, 20, 0.8);
+        color: #f4f6fb;
+      }
+      input:focus,
+      select:focus {
+        outline: 2px solid rgba(120, 200, 255, 0.6);
+        outline-offset: 1px;
+      }
+      .meta {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .warning {
+        font-size: 13px;
+        color: #ffd88a;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+      }
+      button {
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(24, 28, 38, 0.9);
+        color: #f4f6fb;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      button.primary {
+        background: linear-gradient(120deg, #377df7, #65c4ff);
+        border: none;
+        color: #071018;
+        font-weight: 600;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        transform: none;
+        box-shadow: none;
+      }
+      button:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+      }
+      .progress {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .progress-track {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4cc9f0, #4361ee);
+      }
+      .progress-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .error {
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(80, 20, 20, 0.8);
+        color: #ffb4b4;
+        border: 1px solid rgba(255, 122, 122, 0.4);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        text-align: center;
+      }
+      .stats div {
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(9, 11, 16, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .stats span {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .stats strong {
+        font-size: 18px;
+      }
+      .note {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.55);
+        line-height: 1.5;
+      }
+      .viewer {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .viewer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .viewer-header h2 {
+        margin: 0 0 6px;
+        font-size: 24px;
+        color: #f4f6fb;
+      }
+      .viewer-header p {
+        margin: 0;
+        font-size: 13px;
+      }
+      .viewer-canvas {
+        flex: 1;
+        min-height: 520px;
+        border-radius: 20px;
+        background: radial-gradient(circle at top, rgba(39, 54, 78, 0.6), #0b0d12 70%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+      .color-legend {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .legend-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #3aa0ff, #76e0b9, #ff8a5b);
+      }
+      .legend-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      @media (max-width: 1024px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+        .panel-block.two-col {
+          grid-template-columns: 1fr;
+        }
+        .stats {
+          grid-template-columns: 1fr;
+        }
+        .viewer-canvas {
+          min-height: 360px;
+        }
+        .hero {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Interaction Region Indicator</p>
+          <h1>Browser IRI Analysis</h1>
+          <p class="subtitle">
+            Upload a Gaussian <code>.fchk</code> file to compute IRI and render
+            a 3D isosurface colored by sign(lambda2) rho.
+          </p>
+        </div>
+        <div class="hero-badge">Closed-shell only</div>
+      </header>
+
+      <main class="content">
+        <section class="panel">
+          <div class="panel-block">
+            <label class="label">FCHK file</label>
+            <input type="file" id="fileInput" accept=".fchk" />
+            <p class="meta" id="fileName">No file selected</p>
+          </div>
+
+          <div class="panel-block">
+            <label class="label">Grid preset</label>
+            <select id="gridSize">
+              <option value="50">Preview (50^3)</option>
+              <option value="80" selected>Standard (80^3)</option>
+              <option value="120">Heavy (120^3)</option>
+            </select>
+            <p class="meta" id="memoryEstimate">Estimated memory: --</p>
+            <p class="warning" id="heavyWarning" style="display:none;">Heavy run enabled.</p>
+          </div>
+
+          <div class="panel-block two-col">
+            <label class="label">Padding (Bohr)</label>
+            <input type="number" id="padding" step="0.5" value="4" />
+            <label class="label">a (IRI)</label>
+            <input type="number" id="aValue" step="0.05" value="1.1" />
+          </div>
+
+          <div class="panel-block two-col">
+            <label class="label">Isovalue</label>
+            <input type="number" id="isoValue" step="0.05" value="1.0" />
+            <label class="label">Color min</label>
+            <input type="number" id="colorMin" step="0.01" value="-0.04" />
+          </div>
+
+          <div class="panel-block two-col">
+            <label class="label">Color max</label>
+            <input type="number" id="colorMax" step="0.01" value="0.02" />
+            <div class="color-legend">
+              <div class="legend-bar"></div>
+              <div class="legend-labels">
+                <span id="legendMin">-0.04</span>
+                <span>0</span>
+                <span id="legendMax">0.02</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-block actions">
+            <button class="primary" id="runBtn" disabled>Compute IRI</button>
+            <button id="exportBtn" disabled>Export PNG</button>
+          </div>
+
+          <div class="panel-block" id="progressBlock" style="display:none;">
+            <div class="progress">
+              <div class="progress-label" id="progressLabel">Idle</div>
+              <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-block error" id="errorBlock" style="display:none;"></div>
+
+          <div class="panel-block stats" id="statsBlock" style="display:none;">
+            <div>
+              <span>Basis functions</span>
+              <strong id="statBasis">--</strong>
+            </div>
+            <div>
+              <span>Occupied orbitals</span>
+              <strong id="statOcc">--</strong>
+            </div>
+            <div>
+              <span>Grid size</span>
+              <strong id="statGrid">--</strong>
+            </div>
+          </div>
+
+          <div class="panel-block note">
+            IRI = |grad rho| / rho^a, with sign(lambda2) rho mapped to color.
+            Defaults: a = 1.1, isovalue = 1.0.
+          </div>
+        </section>
+
+        <section class="viewer">
+          <div class="viewer-header">
+            <div>
+              <h2>Isosurface View</h2>
+              <p>Rotate with mouse, scroll to zoom.</p>
+            </div>
+          </div>
+          <div class="viewer-canvas" id="viewer"></div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module">
+      import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+      import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+      const fileInput = document.getElementById("fileInput");
+      const fileName = document.getElementById("fileName");
+      const runBtn = document.getElementById("runBtn");
+      const exportBtn = document.getElementById("exportBtn");
+      const gridSizeSelect = document.getElementById("gridSize");
+      const paddingInput = document.getElementById("padding");
+      const aValueInput = document.getElementById("aValue");
+      const isoValueInput = document.getElementById("isoValue");
+      const colorMinInput = document.getElementById("colorMin");
+      const colorMaxInput = document.getElementById("colorMax");
+      const memoryEstimate = document.getElementById("memoryEstimate");
+      const heavyWarning = document.getElementById("heavyWarning");
+      const legendMin = document.getElementById("legendMin");
+      const legendMax = document.getElementById("legendMax");
+      const progressBlock = document.getElementById("progressBlock");
+      const progressLabel = document.getElementById("progressLabel");
+      const progressFill = document.getElementById("progressFill");
+      const errorBlock = document.getElementById("errorBlock");
+      const statsBlock = document.getElementById("statsBlock");
+      const statBasis = document.getElementById("statBasis");
+      const statOcc = document.getElementById("statOcc");
+      const statGrid = document.getElementById("statGrid");
+      const viewer = document.getElementById("viewer");
+
+      let fchkText = null;
+      let worker = null;
+      let renderer = null;
+      let scene = null;
+      let camera = null;
+      let controls = null;
+      let mesh = null;
+
+      const workerSource = `
+        self.importScripts('https://cdn.jsdelivr.net/npm/isosurface@1.0.0/dist/isosurface.min.js');
+        const isosurface = self.isosurface;
+        const CARTESIAN_LMN = {
+          0: [[0,0,0]],
+          1: [[1,0,0],[0,1,0],[0,0,1]],
+          2: [[2,0,0],[0,2,0],[0,0,2],[1,1,0],[1,0,1],[0,1,1]],
+          3: [[3,0,0],[0,3,0],[0,0,3],[2,1,0],[2,0,1],[1,2,0],[0,2,1],[1,0,2],[0,1,2],[1,1,1]],
+          4: [[4,0,0],[0,4,0],[0,0,4],[3,1,0],[3,0,1],[1,3,0],[0,3,1],[1,0,3],[0,1,3],[2,2,0],[2,0,2],[0,2,2],[2,1,1],[1,2,1],[1,1,2]]
+        };
+        const SPHERICAL_COMPONENTS = {
+          2: [
+            { m: 0, kind: "0" },
+            { m: 1, kind: "c" },
+            { m: 1, kind: "s" },
+            { m: 2, kind: "c" },
+            { m: 2, kind: "s" }
+          ],
+          3: [
+            { m: 0, kind: "0" },
+            { m: 1, kind: "c" },
+            { m: 1, kind: "s" },
+            { m: 2, kind: "c" },
+            { m: 2, kind: "s" },
+            { m: 3, kind: "c" },
+            { m: 3, kind: "s" }
+          ],
+          4: [
+            { m: 0, kind: "0" },
+            { m: 1, kind: "c" },
+            { m: 1, kind: "s" },
+            { m: 2, kind: "c" },
+            { m: 2, kind: "s" },
+            { m: 3, kind: "c" },
+            { m: 3, kind: "s" },
+            { m: 4, kind: "c" },
+            { m: 4, kind: "s" }
+          ]
+        };
+        const EPS = 1e-12;
+
+        self.onmessage = (event) => {
+          if (event.data.type !== 'compute') return;
+          const { fchkText, gridSize, padding, aValue, isoValue, colorRange } = event.data.payload;
+          try {
+            postProgress('parse', 0);
+            const parsed = parseFchk(fchkText);
+            if (parsed.nAlpha !== parsed.nBeta) throw new Error('Open-shell systems are not supported in this version.');
+            const resolved = resolveShellTypes(parsed.shellTypes, {
+              d: parsed.pureCartesianD,
+              f: parsed.pureCartesianF
+            }, parsed.nBasis);
+            const basisCount = countBasisFunctions(resolved.shellTypes);
+            if (basisCount !== parsed.nBasis) {
+              throw new Error('Basis count mismatch: expected ' + parsed.nBasis + ', got ' + basisCount);
+            }
+            if (parsed.alphaMOCoeffs.length % basisCount !== 0) {
+              throw new Error('Alpha MO coefficients length mismatch: expected multiple of ' + basisCount + ', got ' + parsed.alphaMOCoeffs.length);
+            }
+            postProgress('basis', 0);
+            const basisFunctions = buildBasisFunctions({
+              ...parsed,
+              shellTypes: resolved.shellTypes
+            });
+            postProgress('grid', 0);
+            const bounds = computeBounds(parsed.atoms, padding);
+            const dims = [gridSize, gridSize, gridSize];
+            const spacing = [
+              (bounds.max[0] - bounds.min[0]) / (gridSize - 1),
+              (bounds.max[1] - bounds.min[1]) / (gridSize - 1),
+              (bounds.max[2] - bounds.min[2]) / (gridSize - 1)
+            ];
+            postProgress('density', 0);
+            const densityResult = computeDensity(basisFunctions, parsed.alphaMOCoeffs, parsed.nAlpha, dims, bounds, spacing);
+            postProgress('derivatives', 0);
+            const iriResult = computeIriAndSign(densityResult.rho, dims, spacing, aValue);
+            postProgress('surface', 0);
+            const mesh = buildIsosurface(iriResult.iri, iriResult.signLambda2Rho, dims, bounds, spacing, isoValue, colorRange);
+            self.postMessage({
+              type: 'result',
+              payload: {
+                vertices: mesh.vertices,
+                colors: mesh.colors,
+                indices: mesh.indices,
+                bounds,
+                stats: {
+                  gridSize,
+                  basisCount: basisFunctions.length,
+                  occOrbitals: parsed.nAlpha,
+                  maxDensity: densityResult.maxDensity
+                }
+              }
+            }, [mesh.vertices.buffer, mesh.colors.buffer, mesh.indices.buffer]);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            self.postMessage({ type: 'error', message });
+          }
+        };
+
+        function postProgress(stage, percent) {
+          self.postMessage({ type: 'progress', stage, percent });
+        }
+
+        function parseFchk(text) {
+          const lines = text.replace(/\r/g, '').split('\n');
+          const nAtoms = readScalar(lines, 'Number of atoms');
+          const nAlpha = readScalar(lines, 'Number of alpha electrons');
+          const nBeta = readScalar(lines, 'Number of beta electrons');
+          const nBasis = readScalar(lines, 'Number of basis functions');
+          const pureCartesianD = tryReadScalar(lines, 'Pure/Cartesian d shells');
+          const pureCartesianF = tryReadScalar(lines, 'Pure/Cartesian f shells');
+          const atomicNumbers = tryReadArray(lines, 'Atomic numbers');
+          const coords = readArray(lines, 'Current cartesian coordinates');
+          const shellTypes = readArray(lines, 'Shell types');
+          const shellToAtom = readArray(lines, 'Shell to atom map');
+          const nPrimsPerShell = readArray(lines, 'Number of primitives per shell');
+          const primExponents = readArray(lines, 'Primitive exponents');
+          const contractionCoeffs = readArray(lines, 'Contraction coefficients');
+          const spContractionCoeffs = tryReadArray(lines, 'P(S=P) Contraction coefficients');
+          const alphaMOCoeffs = readArray(lines, 'Alpha MO coefficients');
+          const resolvedAtomicNumbers = atomicNumbers || tryReadArray(lines, 'Nuclear charges');
+          if (!resolvedAtomicNumbers) throw new Error('Missing array: Atomic numbers');
+          if (resolvedAtomicNumbers.length !== nAtoms) throw new Error('Failed to read atomic numbers from .fchk');
+          if (coords.length !== nAtoms * 3) throw new Error('Failed to read coordinates from .fchk');
+          const atoms = resolvedAtomicNumbers.map((atomicNumber, i) => ({
+            atomicNumber: Math.round(atomicNumber),
+            x: coords[i * 3],
+            y: coords[i * 3 + 1],
+            z: coords[i * 3 + 2]
+          }));
+          return {
+            atoms,
+            shellTypes: shellTypes.map(v => Math.trunc(v)),
+            shellToAtom: shellToAtom.map(v => Math.trunc(v)),
+            nPrimsPerShell: nPrimsPerShell.map(v => Math.trunc(v)),
+            primExponents,
+            contractionCoeffs,
+            spContractionCoeffs,
+            alphaMOCoeffs,
+            nAlpha,
+            nBeta,
+            nBasis,
+            pureCartesianD,
+            pureCartesianF
+          };
+        }
+
+        function readScalar(lines, label) {
+          const labelRegex = new RegExp('^\\s*' + escapeLabel(label) + '\\b', 'i');
+          for (const line of lines) {
+            if (!labelRegex.test(line)) continue;
+            const nMatch = line.match(/N=\s*(-?\d+)/i);
+            if (nMatch) return Number(nMatch[1]);
+            const tailMatch = line.match(/(-?\d+)\s*$/);
+            if (tailMatch) return Number(tailMatch[1]);
+          }
+          throw new Error('Missing scalar value: ' + label);
+        }
+
+        function tryReadScalar(lines, label) {
+          const labelRegex = new RegExp('^\\s*' + escapeLabel(label) + '\\b', 'i');
+          for (const line of lines) {
+            if (!labelRegex.test(line)) continue;
+            const nMatch = line.match(/N=\s*(-?\d+)/i);
+            if (nMatch) return Number(nMatch[1]);
+            const tailMatch = line.match(/(-?\d+)\s*$/);
+            if (tailMatch) return Number(tailMatch[1]);
+          }
+          return null;
+        }
+
+        function readArray(lines, label) {
+          const result = tryReadArray(lines, label);
+          if (!result) throw new Error('Missing array: ' + label);
+          return result;
+        }
+
+        function tryReadArray(lines, label) {
+          const labelRegex = new RegExp('^\\s*' + escapeLabel(label) + '\\b', 'i');
+          for (let i = 0; i < lines.length; i += 1) {
+            const line = lines[i];
+            if (!labelRegex.test(line)) continue;
+            const countMatch = line.match(/N=\s*(\d+)/i) || line.match(/\s(\d+)\s*$/);
+            if (!countMatch) throw new Error('Missing count for array: ' + label);
+            const count = Number(countMatch[1]);
+            const values = [];
+            for (let j = i + 1; j < lines.length && values.length < count; j += 1) {
+              const tokens = lines[j].trim().split(/\s+/).filter(Boolean);
+              for (const token of tokens) {
+                if (values.length >= count) break;
+                values.push(parseNumber(token));
+              }
+            }
+            if (values.length !== count) throw new Error('Failed to read ' + label);
+            return values;
+          }
+          return null;
+        }
+
+        function parseNumber(value) {
+          return Number(value.replace(/D/g, 'E'));
+        }
+
+        function escapeLabel(label) {
+          return label.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+        }
+
+        function buildBasisFunctions(parsed) {
+          const basisFunctions = [];
+          let primOffset = 0;
+          for (let s = 0; s < parsed.shellTypes.length; s += 1) {
+            const shellType = parsed.shellTypes[s];
+            const atomIndex = parsed.shellToAtom[s] - 1;
+            const nPrims = parsed.nPrimsPerShell[s];
+            const center = parsed.atoms[atomIndex];
+            const primitives = [];
+            const primitivesSp = [];
+            for (let p = 0; p < nPrims; p += 1) {
+              const exp = parsed.primExponents[primOffset + p];
+              const coeff = parsed.contractionCoeffs[primOffset + p];
+              primitives.push({ exp, coeff });
+              if (shellType === -1) {
+                if (!parsed.spContractionCoeffs) throw new Error('Missing SP contraction coefficients in .fchk');
+                const spCoeff = parsed.spContractionCoeffs[primOffset + p];
+                primitivesSp.push({ exp, coeff: spCoeff });
+              }
+            }
+            primOffset += nPrims;
+            if (shellType === -1) {
+              pushShell(basisFunctions, center, 0, primitives);
+              pushShell(basisFunctions, center, 1, primitivesSp);
+              continue;
+            }
+            if (shellType < 0) {
+              const l = Math.abs(shellType);
+              pushSphericalShell(basisFunctions, center, l, primitives);
+              continue;
+            }
+            pushShell(basisFunctions, center, shellType, primitives);
+          }
+          return basisFunctions;
+        }
+
+        function pushShell(basisFunctions, center, shellType, primitives) {
+          const lmnList = CARTESIAN_LMN[shellType];
+          if (!lmnList) throw new Error('Shell type not supported: ' + shellType);
+          for (const lmn of lmnList) {
+            const lx = lmn[0];
+            const ly = lmn[1];
+            const lz = lmn[2];
+            const prims = primitives.map((primitive) => ({
+              exp: primitive.exp,
+              coeff: primitive.coeff * primitiveNormalization(primitive.exp, lx, ly, lz)
+            }));
+            basisFunctions.push({
+              kind: "cartesian",
+              center: [center.x, center.y, center.z],
+              lx,
+              ly,
+              lz,
+              primitives: prims
+            });
+          }
+        }
+
+        function pushSphericalShell(basisFunctions, center, l, primitives) {
+          const components = SPHERICAL_COMPONENTS[l];
+          if (!components) throw new Error('Spherical shell type -' + l + ' not supported');
+          for (const component of components) {
+            const prims = primitives.map((primitive) => ({
+              exp: primitive.exp,
+              coeff: primitive.coeff * sphericalPrimitiveNormalization(primitive.exp, l)
+            }));
+            basisFunctions.push({
+              kind: "spherical",
+              center: [center.x, center.y, center.z],
+              l,
+              component,
+              primitives: prims
+            });
+          }
+        }
+
+        function normalizeShellTypes(shellTypes, flags) {
+          const normalized = shellTypes.slice();
+          for (let i = 0; i < normalized.length; i += 1) {
+            const value = normalized[i];
+            if (value >= 0 || value === -1) continue;
+            const l = Math.abs(value);
+            if (l === 2 && flags.d === 0) {
+              normalized[i] = l;
+              continue;
+            }
+            if (l === 3 && flags.f === 0) {
+              normalized[i] = l;
+            }
+          }
+          return normalized;
+        }
+
+        function resolveShellTypes(shellTypes, flags, nBasis) {
+          const rawCount = countBasisFunctions(shellTypes);
+          const normalized = normalizeShellTypes(shellTypes, flags);
+          const normalizedCount = countBasisFunctions(normalized);
+
+          if (rawCount === nBasis && normalizedCount !== nBasis) {
+            return { shellTypes };
+          }
+          if (normalizedCount === nBasis && rawCount !== nBasis) {
+            return { shellTypes: normalized };
+          }
+          if (normalizedCount === nBasis && rawCount === nBasis) {
+            return { shellTypes: normalized };
+          }
+
+          const counts = shellTypeCounts(shellTypes);
+          const detail = Object.entries(counts)
+            .sort((a, b) => Number(a[0]) - Number(b[0]))
+            .map(([k, v]) => `${k}:${v}`)
+            .join(", ");
+          throw new Error(
+            'Basis count mismatch: expected ' + nBasis + ', raw ' + rawCount + ', normalized ' + normalizedCount + ' (shells ' + detail + ')'
+          );
+        }
+
+        function shellTypeCounts(shellTypes) {
+          const counts = {};
+          for (const value of shellTypes) {
+            counts[value] = (counts[value] || 0) + 1;
+          }
+          return counts;
+        }
+
+        function countBasisFunctions(shellTypes) {
+          let total = 0;
+          for (const shellType of shellTypes) {
+            if (shellType === -1) {
+              total += 4;
+              continue;
+            }
+            if (shellType < 0) {
+              total += sphericalCount(Math.abs(shellType));
+              continue;
+            }
+            total += cartesianCount(shellType);
+          }
+          return total;
+        }
+
+        function cartesianCount(l) {
+          return ((l + 1) * (l + 2)) / 2;
+        }
+
+        function sphericalCount(l) {
+          return 2 * l + 1;
+        }
+
+        function primitiveNormalization(exp, lx, ly, lz) {
+          const l = lx + ly + lz;
+          const prefactor = Math.pow((2 * exp) / Math.PI, 0.75);
+          const num = Math.pow(4 * exp, l);
+          const denom = doubleFactorial(2 * lx - 1) * doubleFactorial(2 * ly - 1) * doubleFactorial(2 * lz - 1);
+          return prefactor * Math.sqrt(num / denom);
+        }
+
+        function sphericalPrimitiveNormalization(exp, l) {
+          const prefactor = Math.pow((2 * exp) / Math.PI, 0.75);
+          const num = Math.pow(4 * exp, l);
+          const denom = doubleFactorial(2 * l - 1);
+          return prefactor * Math.sqrt(num / denom);
+        }
+
+        function doubleFactorial(n) {
+          if (n <= 0) return 1;
+          let result = 1;
+          for (let i = n; i > 1; i -= 2) result *= i;
+          return result;
+        }
+
+        function computeBounds(atoms, padding) {
+          let minX = Infinity, minY = Infinity, minZ = Infinity;
+          let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+          for (const atom of atoms) {
+            minX = Math.min(minX, atom.x);
+            minY = Math.min(minY, atom.y);
+            minZ = Math.min(minZ, atom.z);
+            maxX = Math.max(maxX, atom.x);
+            maxY = Math.max(maxY, atom.y);
+            maxZ = Math.max(maxZ, atom.z);
+          }
+          return {
+            min: [minX - padding, minY - padding, minZ - padding],
+            max: [maxX + padding, maxY + padding, maxZ + padding]
+          };
+        }
+
+        function computeDensity(basisFunctions, moCoeffs, occOrbitals, dims, bounds, spacing) {
+          const nx = dims[0], ny = dims[1], nz = dims[2];
+          const total = nx * ny * nz;
+          const rho = new Float32Array(total);
+          const basisCount = basisFunctions.length;
+          const basisValues = new Float32Array(basisCount);
+          let maxDensity = 0;
+          for (let z = 0; z < nz; z += 1) {
+            const zCoord = bounds.min[2] + z * spacing[2];
+            if (z % 4 === 0) postProgress('density', Math.round((z / (nz - 1)) * 100));
+            for (let y = 0; y < ny; y += 1) {
+              const yCoord = bounds.min[1] + y * spacing[1];
+              for (let x = 0; x < nx; x += 1) {
+                const xCoord = bounds.min[0] + x * spacing[0];
+                for (let i = 0; i < basisCount; i += 1) {
+                  basisValues[i] = evalBasis(basisFunctions[i], xCoord, yCoord, zCoord);
+                }
+                let density = 0;
+                for (let mo = 0; mo < occOrbitals; mo += 1) {
+                  let moValue = 0;
+                  const offset = mo * basisCount;
+                  for (let i = 0; i < basisCount; i += 1) {
+                    moValue += moCoeffs[offset + i] * basisValues[i];
+                  }
+                  density += moValue * moValue;
+                }
+                density *= 2;
+                const idx = x + y * nx + z * nx * ny;
+                rho[idx] = density;
+                if (density > maxDensity) maxDensity = density;
+              }
+            }
+          }
+          return { rho, maxDensity };
+        }
+
+        function evalBasis(fn, x, y, z) {
+          const dx = x - fn.center[0];
+          const dy = y - fn.center[1];
+          const dz = z - fn.center[2];
+          const r2 = dx * dx + dy * dy + dz * dz;
+          let radial = 0;
+          for (const primitive of fn.primitives) {
+            radial += primitive.coeff * Math.exp(-primitive.exp * r2);
+          }
+          if (fn.kind === "cartesian") {
+            const xPow = powByDegree(dx, fn.lx);
+            const yPow = powByDegree(dy, fn.ly);
+            const zPow = powByDegree(dz, fn.lz);
+            return radial * xPow * yPow * zPow;
+          }
+          const angular = evalSolidHarmonic(fn.l, fn.component, dx, dy, dz);
+          return radial * angular;
+        }
+
+        function evalSolidHarmonic(l, component, x, y, z) {
+          const x2 = x * x;
+          const y2 = y * y;
+          const z2 = z * z;
+          const r2 = x2 + y2 + z2;
+          const m = component.m;
+          const kind = component.kind;
+
+          if (l === 2) {
+            const c20 = Math.sqrt(5 / (16 * Math.PI));
+            const c21 = Math.sqrt(15 / (4 * Math.PI));
+            const c22 = Math.sqrt(15 / (16 * Math.PI));
+            if (m === 0) return c20 * (2 * z2 - x2 - y2);
+            if (m === 1 && kind === "c") return c21 * x * z;
+            if (m === 1 && kind === "s") return c21 * y * z;
+            if (m === 2 && kind === "c") return c22 * (x2 - y2);
+            if (m === 2 && kind === "s") return (2 * c22) * x * y;
+          }
+
+          if (l === 3) {
+            const c30 = Math.sqrt(7 / (16 * Math.PI));
+            const c31 = Math.sqrt(21 / (32 * Math.PI));
+            const c32 = Math.sqrt(105 / (16 * Math.PI));
+            const c33 = Math.sqrt(35 / (32 * Math.PI));
+            if (m === 0) return c30 * (2 * z * z2 - 3 * z * (x2 + y2));
+            if (m === 1 && kind === "c") return c31 * x * (5 * z2 - r2);
+            if (m === 1 && kind === "s") return c31 * y * (5 * z2 - r2);
+            if (m === 2 && kind === "c") return c32 * z * (x2 - y2);
+            if (m === 2 && kind === "s") return (2 * c32) * x * y * z;
+            if (m === 3 && kind === "c") return c33 * (x * (x2 - 3 * y2));
+            if (m === 3 && kind === "s") return c33 * (y * (3 * x2 - y2));
+          }
+
+          if (l === 4) {
+            const c40 = (3 / 16) * Math.sqrt(1 / Math.PI);
+            const c41 = (3 / 4) * Math.sqrt(5 / Math.PI);
+            const c42 = (3 / 8) * Math.sqrt(5 / Math.PI);
+            const c43 = (3 / 8) * Math.sqrt(70 / Math.PI);
+            const c44 = (3 / 16) * Math.sqrt(35 / Math.PI);
+            const r4 = r2 * r2;
+            if (m === 0) return c40 * (35 * z2 * z2 - 30 * z2 * r2 + 3 * r4);
+            if (m === 1 && kind === "c") return c41 * x * z * (7 * z2 - 3 * r2);
+            if (m === 1 && kind === "s") return c41 * y * z * (7 * z2 - 3 * r2);
+            if (m === 2 && kind === "c") return c42 * (x2 - y2) * (7 * z2 - r2);
+            if (m === 2 && kind === "s") return (2 * c42) * x * y * (7 * z2 - r2);
+            if (m === 3 && kind === "c") return c43 * z * (x * (x2 - 3 * y2));
+            if (m === 3 && kind === "s") return c43 * z * (y * (3 * x2 - y2));
+            if (m === 4 && kind === "c") return c44 * (x2 * x2 - 6 * x2 * y2 + y2 * y2);
+            if (m === 4 && kind === "s") return c44 * (4 * x * y * (x2 - y2));
+          }
+
+          throw new Error('Spherical harmonic l=' + l + ' m=' + m + kind + ' not supported');
+        }
+
+        function powByDegree(value, degree) {
+          if (degree === 0) return 1;
+          if (degree === 1) return value;
+          if (degree === 2) return value * value;
+          if (degree === 3) return value * value * value;
+          if (degree === 4) return value * value * value * value;
+          return Math.pow(value, degree);
+        }
+
+        function computeIriAndSign(rho, dims, spacing, aValue) {
+          const nx = dims[0], ny = dims[1], nz = dims[2];
+          const total = nx * ny * nz;
+          const iri = new Float32Array(total);
+          const signLambda2Rho = new Float32Array(total);
+          const hx = spacing[0], hy = spacing[1], hz = spacing[2];
+          const hx2 = hx * hx, hy2 = hy * hy, hz2 = hz * hz;
+          for (let z = 0; z < nz; z += 1) {
+            if (z % 4 === 0) postProgress('derivatives', Math.round((z / (nz - 1)) * 100));
+            for (let y = 0; y < ny; y += 1) {
+              for (let x = 0; x < nx; x += 1) {
+                const idx = x + y * nx + z * nx * ny;
+                const rhoC = rho[idx];
+                if (rhoC < EPS) {
+                  iri[idx] = 0;
+                  signLambda2Rho[idx] = 0;
+                  continue;
+                }
+                const xm = x > 0 ? x - 1 : x;
+                const xp = x < nx - 1 ? x + 1 : x;
+                const ym = y > 0 ? y - 1 : y;
+                const yp = y < ny - 1 ? y + 1 : y;
+                const zm = z > 0 ? z - 1 : z;
+                const zp = z < nz - 1 ? z + 1 : z;
+                const rhoXp = rho[xp + y * nx + z * nx * ny];
+                const rhoXm = rho[xm + y * nx + z * nx * ny];
+                const rhoYp = rho[x + yp * nx + z * nx * ny];
+                const rhoYm = rho[x + ym * nx + z * nx * ny];
+                const rhoZp = rho[x + y * nx + zp * nx * ny];
+                const rhoZm = rho[x + y * nx + zm * nx * ny];
+                const dRhoDx = (rhoXp - rhoXm) / (xp === xm ? hx : 2 * hx);
+                const dRhoDy = (rhoYp - rhoYm) / (yp === ym ? hy : 2 * hy);
+                const dRhoDz = (rhoZp - rhoZm) / (zp === zm ? hz : 2 * hz);
+                const dxx = (rhoXp - 2 * rhoC + rhoXm) / hx2;
+                const dyy = (rhoYp - 2 * rhoC + rhoYm) / hy2;
+                const dzz = (rhoZp - 2 * rhoC + rhoZm) / hz2;
+                const rhoXpYp = rho[xp + yp * nx + z * nx * ny];
+                const rhoXpYm = rho[xp + ym * nx + z * nx * ny];
+                const rhoXmYp = rho[xm + yp * nx + z * nx * ny];
+                const rhoXmYm = rho[xm + ym * nx + z * nx * ny];
+                const rhoXpZp = rho[xp + y * nx + zp * nx * ny];
+                const rhoXpZm = rho[xp + y * nx + zm * nx * ny];
+                const rhoXmZp = rho[xm + y * nx + zp * nx * ny];
+                const rhoXmZm = rho[xm + y * nx + zm * nx * ny];
+                const rhoYpZp = rho[x + yp * nx + zp * nx * ny];
+                const rhoYpZm = rho[x + yp * nx + zm * nx * ny];
+                const rhoYmZp = rho[x + ym * nx + zp * nx * ny];
+                const rhoYmZm = rho[x + ym * nx + zm * nx * ny];
+                const dxy = (rhoXpYp - rhoXpYm - rhoXmYp + rhoXmYm) / (4 * hx * hy);
+                const dxz = (rhoXpZp - rhoXpZm - rhoXmZp + rhoXmZm) / (4 * hx * hz);
+                const dyz = (rhoYpZp - rhoYpZm - rhoYmZp + rhoYmZm) / (4 * hy * hz);
+                const gradNorm = Math.sqrt(dRhoDx * dRhoDx + dRhoDy * dRhoDy + dRhoDz * dRhoDz);
+                iri[idx] = gradNorm / Math.pow(rhoC, aValue);
+                const lambda2 = eigenvalueLambda2(dxx, dyy, dzz, dxy, dxz, dyz);
+                signLambda2Rho[idx] = Math.sign(lambda2) * rhoC;
+              }
+            }
+          }
+          return { iri, signLambda2Rho };
+        }
+
+        function eigenvalueLambda2(dxx, dyy, dzz, dxy, dxz, dyz) {
+          const p1 = dxy * dxy + dxz * dxz + dyz * dyz;
+          if (p1 === 0) {
+            const values = [dxx, dyy, dzz].sort((a, b) => a - b);
+            return values[1];
+          }
+          const q = (dxx + dyy + dzz) / 3;
+          const p2 = (dxx - q) * (dxx - q) + (dyy - q) * (dyy - q) + (dzz - q) * (dzz - q) + 2 * p1;
+          const p = Math.sqrt(p2 / 6);
+          const b11 = (dxx - q) / p;
+          const b22 = (dyy - q) / p;
+          const b33 = (dzz - q) / p;
+          const b12 = dxy / p;
+          const b13 = dxz / p;
+          const b23 = dyz / p;
+          const detB = b11 * b22 * b33 + 2 * b12 * b13 * b23 - b11 * b23 * b23 - b22 * b13 * b13 - b33 * b12 * b12;
+          const r = detB / 2;
+          let phi = 0;
+          if (r <= -1) {
+            phi = Math.PI / 3;
+          } else if (r >= 1) {
+            phi = 0;
+          } else {
+            phi = Math.acos(r) / 3;
+          }
+          const eig1 = q + 2 * p * Math.cos(phi);
+          const eig3 = q + 2 * p * Math.cos(phi + (2 * Math.PI) / 3);
+          const eig2 = 3 * q - eig1 - eig3;
+          const values = [eig1, eig2, eig3].sort((a, b) => a - b);
+          return values[1];
+        }
+
+        function buildIsosurface(iri, signLambda2Rho, dims, bounds, spacing, isoValue, colorRange) {
+          const nx = dims[0], ny = dims[1], nz = dims[2];
+          const getIndex = (x, y, z) => x + y * nx + z * nx * ny;
+          const mesh = isosurface.marchingCubes(dims, (x, y, z) => iri[getIndex(x, y, z)] - isoValue);
+          const vertices = new Float32Array(mesh.positions.length * 3);
+          const colors = new Float32Array(mesh.positions.length * 3);
+          for (let i = 0; i < mesh.positions.length; i += 1) {
+            const gx = mesh.positions[i][0];
+            const gy = mesh.positions[i][1];
+            const gz = mesh.positions[i][2];
+            vertices[i * 3] = bounds.min[0] + gx * spacing[0];
+            vertices[i * 3 + 1] = bounds.min[1] + gy * spacing[1];
+            vertices[i * 3 + 2] = bounds.min[2] + gz * spacing[2];
+            const signValue = sampleTrilinear(signLambda2Rho, dims, gx, gy, gz);
+            const color = mapSignColor(signValue, colorRange.min, colorRange.max);
+            colors[i * 3] = color[0];
+            colors[i * 3 + 1] = color[1];
+            colors[i * 3 + 2] = color[2];
+          }
+          const indices = new Uint32Array(mesh.cells.length * 3);
+          for (let i = 0; i < mesh.cells.length; i += 1) {
+            indices[i * 3] = mesh.cells[i][0];
+            indices[i * 3 + 1] = mesh.cells[i][1];
+            indices[i * 3 + 2] = mesh.cells[i][2];
+          }
+          return { vertices, colors, indices };
+        }
+
+        function sampleTrilinear(field, dims, x, y, z) {
+          const nx = dims[0], ny = dims[1], nz = dims[2];
+          const x0 = Math.floor(x), y0 = Math.floor(y), z0 = Math.floor(z);
+          const x1 = Math.min(x0 + 1, nx - 1);
+          const y1 = Math.min(y0 + 1, ny - 1);
+          const z1 = Math.min(z0 + 1, nz - 1);
+          const xd = x - x0, yd = y - y0, zd = z - z0;
+          const idx = (ix, iy, iz) => ix + iy * nx + iz * nx * ny;
+          const c000 = field[idx(x0, y0, z0)];
+          const c100 = field[idx(x1, y0, z0)];
+          const c010 = field[idx(x0, y1, z0)];
+          const c110 = field[idx(x1, y1, z0)];
+          const c001 = field[idx(x0, y0, z1)];
+          const c101 = field[idx(x1, y0, z1)];
+          const c011 = field[idx(x0, y1, z1)];
+          const c111 = field[idx(x1, y1, z1)];
+          const c00 = c000 * (1 - xd) + c100 * xd;
+          const c01 = c001 * (1 - xd) + c101 * xd;
+          const c10 = c010 * (1 - xd) + c110 * xd;
+          const c11 = c011 * (1 - xd) + c111 * xd;
+          const c0 = c00 * (1 - yd) + c10 * yd;
+          const c1 = c01 * (1 - yd) + c11 * yd;
+          return c0 * (1 - zd) + c1 * zd;
+        }
+
+        function mapSignColor(value, min, max) {
+          const clamped = Math.max(min, Math.min(max, value));
+          const mid = 0;
+          if (clamped <= mid) {
+            const t = (clamped - min) / (mid - min || 1);
+            return [0.1 + 0.2 * t, 0.6 + 0.3 * t, 0.9];
+          }
+          const t = (clamped - mid) / (max - mid || 1);
+          return [0.9, 0.4 + 0.4 * (1 - t), 0.2 + 0.2 * (1 - t)];
+        }
+      `;
+
+      function initWorker() {
+        const blob = new Blob([workerSource], { type: "application/javascript" });
+        const url = URL.createObjectURL(blob);
+        worker = new Worker(url);
+        worker.onmessage = (event) => {
+          const { type } = event.data;
+          if (type === "progress") {
+            progressBlock.style.display = "block";
+            progressLabel.textContent = `${event.data.stage}  ${event.data.percent}%`;
+            progressFill.style.width = `${event.data.percent}%`;
+          }
+          if (type === "error") {
+            errorBlock.style.display = "block";
+            errorBlock.textContent = event.data.message;
+            progressBlock.style.display = "none";
+            runBtn.disabled = false;
+          }
+          if (type === "result") {
+            errorBlock.style.display = "none";
+            progressBlock.style.display = "none";
+            runBtn.disabled = false;
+            exportBtn.disabled = false;
+            statsBlock.style.display = "grid";
+            statBasis.textContent = event.data.payload.stats.basisCount;
+            statOcc.textContent = event.data.payload.stats.occOrbitals;
+            statGrid.textContent = `${event.data.payload.stats.gridSize}^3`;
+            updateMesh(event.data.payload);
+          }
+        };
+      }
+
+      function updateMemoryEstimate() {
+        const gridSize = Number(gridSizeSelect.value);
+        const cells = gridSize * gridSize * gridSize;
+        const bytes = cells * 4 * 4;
+        const mb = Math.round((bytes / (1024 * 1024)) * 10) / 10;
+        memoryEstimate.textContent = `Estimated memory: ${mb} MB`;
+        heavyWarning.style.display = gridSize > 80 ? "block" : "none";
+      }
+
+      function updateLegend() {
+        legendMin.textContent = Number(colorMinInput.value).toFixed(2);
+        legendMax.textContent = Number(colorMaxInput.value).toFixed(2);
+      }
+
+      function initScene() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color("#0e1116");
+        camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+        camera.position.set(0, 0, 80);
+        renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setPixelRatio(window.devicePixelRatio || 1);
+        renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+        viewer.appendChild(renderer.domElement);
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const directional = new THREE.DirectionalLight(0xffffff, 0.9);
+        directional.position.set(1, 1, 1);
+        scene.add(directional);
+        const resizeObserver = new ResizeObserver(() => {
+          renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+          camera.aspect = viewer.clientWidth / viewer.clientHeight;
+          camera.updateProjectionMatrix();
+        });
+        resizeObserver.observe(viewer);
+        function animate() {
+          controls.update();
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        }
+        animate();
+      }
+
+      function updateMesh(payload) {
+        if (mesh) {
+          scene.remove(mesh);
+          mesh.geometry.dispose();
+          mesh.material.dispose();
+        }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.BufferAttribute(payload.vertices, 3));
+        geometry.setAttribute("color", new THREE.BufferAttribute(payload.colors, 3));
+        geometry.setIndex(new THREE.BufferAttribute(payload.indices, 1));
+        geometry.computeVertexNormals();
+        const material = new THREE.MeshStandardMaterial({
+          vertexColors: true,
+          side: THREE.DoubleSide,
+          roughness: 0.35,
+          metalness: 0.1,
+          transparent: true,
+          opacity: 0.9
+        });
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        const bounds = new THREE.Box3().setFromBufferAttribute(geometry.getAttribute("position"));
+        const center = bounds.getCenter(new THREE.Vector3());
+        const size = bounds.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        mesh.position.sub(center);
+        camera.position.set(0, 0, maxDim * 1.6 + 10);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
+
+      fileInput.addEventListener("change", (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        fileName.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = () => {
+          fchkText = String(reader.result || "");
+          runBtn.disabled = false;
+        };
+        reader.readAsText(file);
+      });
+
+      runBtn.addEventListener("click", () => {
+        if (!fchkText || !worker) return;
+        runBtn.disabled = true;
+        errorBlock.style.display = "none";
+        statsBlock.style.display = "none";
+        progressBlock.style.display = "block";
+        progressLabel.textContent = "starting";
+        progressFill.style.width = "0%";
+        worker.postMessage({
+          type: "compute",
+          payload: {
+            fchkText,
+            gridSize: Number(gridSizeSelect.value),
+            padding: Number(paddingInput.value),
+            aValue: Number(aValueInput.value),
+            isoValue: Number(isoValueInput.value),
+            colorRange: { min: Number(colorMinInput.value), max: Number(colorMaxInput.value) }
+          }
+        });
+      });
+
+      exportBtn.addEventListener("click", () => {
+        if (!renderer) return;
+        const dataUrl = renderer.domElement.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "iri-isosurface.png";
+        link.click();
+      });
+
+      gridSizeSelect.addEventListener("change", updateMemoryEstimate);
+      colorMinInput.addEventListener("input", updateLegend);
+      colorMaxInput.addEventListener("input", updateLegend);
+
+      updateMemoryEstimate();
+      updateLegend();
+      initWorker();
+      initScene();
+    </script>
+  </body>
+</html>
